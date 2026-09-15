@@ -1,41 +1,28 @@
 import * as React from "react";
-import Link from "next/link";
-import { BrainCircuit, Sparkles, ShieldCheck, Heart } from "lucide-react";
+import { BrainCircuit, ShieldCheck } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/70 bg-card/30 backdrop-blur-md mt-auto py-8 transition-colors">
+    <footer className="border-t border-zinc-200 bg-white mt-auto py-6 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center space-x-3">
-            <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-glow-sm">
-              <BrainCircuit className="h-4 w-4" />
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
+          <div className="flex items-center space-x-2">
+            <div className="h-5 w-5 rounded bg-zinc-900 flex items-center justify-center text-white">
+              <BrainCircuit className="h-3 w-3" />
             </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <p className="text-sm font-bold text-foreground">Intellix AI</p>
-                <span className="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                  Hackathon Edition
-                </span>
-              </div>
-              <p className="text-[11px] text-muted-foreground">Zero-Hallucination RAG Assessment & PDF Exporter</p>
-            </div>
+            <span className="font-semibold text-zinc-900">Intellix</span>
+            <span>•</span>
+            <span>Zero-Hallucination Grounded Question Engine</span>
           </div>
 
-          <div className="flex items-center space-x-4 text-xs text-muted-foreground flex-wrap justify-center">
-            <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+          <div className="flex items-center space-x-4">
+            <span className="flex items-center gap-1 text-emerald-700 font-medium">
               <ShieldCheck className="h-3.5 w-3.5" />
               100% Source Grounded
             </span>
-            <span className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-semibold bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-indigo-500/20">
-              <Sparkles className="h-3.5 w-3.5" />
-              Multi-Topic Chunk Extraction
-            </span>
+            <span>•</span>
+            <span>A4 Printable Monochrome PDF Exporter</span>
           </div>
-
-          <p className="text-xs text-muted-foreground font-medium">
-            © {new Date().getFullYear()} Intellix Studio • Built for Deep Learning
-          </p>
         </div>
       </div>
     </footer>

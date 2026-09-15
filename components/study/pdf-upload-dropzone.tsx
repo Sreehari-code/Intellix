@@ -6,33 +6,28 @@ import {
   FileText, 
   CheckCircle2, 
   AlertCircle, 
-  Sparkles, 
   Loader2, 
   X, 
   Plus, 
   FileCheck,
-  ShieldCheck,
-  ArrowRight
+  ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { StudyDocument } from "@/types";
-import Link from "next/link";
 
 interface PdfUploadDropzoneProps {
   onDocumentUploaded: (newDoc: StudyDocument) => void;
+  compact?: boolean;
 }
 
-export function PdfUploadDropzone({ onDocumentUploaded }: PdfUploadDropzoneProps) {
+export function PdfUploadDropzone({ onDocumentUploaded, compact = false }: PdfUploadDropzoneProps) {
   const [isDragging, setIsDragging] = React.useState(false);
   const [uploadingState, setUploadingState] = React.useState<"idle" | "uploading" | "extracting" | "processing" | "success" | "error">("idle");
   const [uploadProgress, setUploadProgress] = React.useState(0);
   const [currentFileName, setCurrentFileName] = React.useState<string | null>(null);
   const [currentFileSize, setCurrentFileSize] = React.useState<string | null>(null);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
-  const [uploadedDoc, setUploadedDoc] = React.useState<StudyDocument | null>(null);
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -62,30 +57,25 @@ export function PdfUploadDropzone({ onDocumentUploaded }: PdfUploadDropzoneProps
   };
 
   const processFile = async (file: File) => {
-    // Reset state
     setErrorMessage(null);
-    setUploadedDoc(null);
 
-    // Validation 1: Check if file is PDF
     const isPdf = file.name.toLowerCase().endsWith(".pdf") || file.type === "application/pdf";
     if (!isPdf) {
       setUploadingState("error");
-      setErrorMessage("Please upload a valid PDF file. Other file formats are not supported.");
+      setErrorMessage("Please select a valid PDF document (.pdf).");
       return;
     }
 
-    // Validation 2: Check max size (25MB)
     const MAX_SIZE = 25 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
       setUploadingState("error");
-      setErrorMessage(`The file is too large (${(file.size / (1024 * 1024)).toFixed(1)} MB). Maximum allowed size is 25 MB.`);
+      setErrorMessage(`File is too large (${(file.size / (1024 * 1024)).toFixed(1)} MB). Maximum allowed is 25 MB.`);
       return;
     }
 
-    // Validation 3: Check empty file
     if (file.size === 0) {
       setUploadingState("error");
-      setErrorMessage("The selected file is empty (0 bytes). Please select a valid document.");
+      setErrorMessage("The selected file is empty (0 bytes).");
       return;
     }
 
@@ -96,18 +86,16 @@ export function PdfUploadDropzone({ onDocumentUploaded }: PdfUploadDropzoneProps
         : `${Math.round(file.size / 1024)} KB`
     );
 
-    // Stage 1: Uploading
     setUploadingState("uploading");
-    setUploadProgress(25);
+    setUploadProgress(20);
 
     try {
       const formData = new FormData();
       formData.append("file", file);
 
-      // Simulating realistic stage transitions for smooth UX feedback
       const progressTimer = setTimeout(() => {
         setUploadingState("extracting");
-        setUploadProgress(60);
+        setUploadProgress(65);
       }, 400);
 
       const response = await fetch("/api/documents/parse", {
@@ -128,11 +116,14 @@ export function PdfUploadDropzone({ onDocumentUploaded }: PdfUploadDropzoneProps
 
       setUploadProgress(100);
       setUploadingState("success");
-      setUploadedDoc(result.document);
       onDocumentUploaded(result.document);
+
+      setTimeout(() => {
+        handleReset();
+      }, 1200);
     } catch (err: any) {
       setUploadingState("error");
-      setErrorMessage(err.message || "An error occurred while uploading and parsing the PDF.");
+      setErrorMessage(err.message || "An error occurred while uploading and extracting the PDF.");
     }
   };
 
@@ -142,14 +133,13 @@ export function PdfUploadDropzone({ onDocumentUploaded }: PdfUploadDropzoneProps
     setCurrentFileName(null);
     setCurrentFileSize(null);
     setErrorMessage(null);
-    setUploadedDoc(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
   return (
-    <div className="space-y-4">
+    <div className="w-full">
       <input
         ref={fileInputRef}
         type="file"
@@ -158,163 +148,87 @@ export function PdfUploadDropzone({ onDocumentUploaded }: PdfUploadDropzoneProps
         onChange={handleFileInputChange}
       />
 
-      {/* Dropzone Card */}
+      {/* Clean Notion Dropzone */}
       {uploadingState === "idle" && (
         <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`relative rounded-3xl border-2 border-dashed p-8 md:p-10 text-center cursor-pointer transition-all duration-200 group ${
+          className={`border border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-150 ${
             isDragging
-              ? "border-primary bg-primary/10 ring-4 ring-primary/20 scale-[1.01]"
-              : "border-indigo-400/40 bg-indigo-50/20 dark:bg-indigo-950/10 hover:border-primary/80 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20"
-          }`}
+              ? "border-zinc-900 bg-zinc-100/80 scale-[0.99]"
+              : "border-zinc-300 bg-zinc-50/50 hover:bg-zinc-100/60 hover:border-zinc-400"
+          } ${compact ? "p-4" : "p-6"}`}
         >
-          <div className="max-w-md mx-auto space-y-4">
-            <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all shadow-sm">
-              <UploadCloud className="h-7 w-7" />
+          <div className="flex flex-col items-center justify-center space-y-2.5">
+            <div className="w-10 h-10 rounded-lg bg-white border border-zinc-200 flex items-center justify-center text-zinc-700 shadow-xs">
+              <UploadCloud className="h-5 w-5 text-zinc-700" />
             </div>
 
-            <div className="space-y-1.5">
-              <h3 className="font-bold text-lg text-foreground">
-                Drop your PDF study material here
-              </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Drag and drop your syllabus, textbook chapter, lecture slides, or exam notes.
+            <div className="space-y-0.5">
+              <p className="text-sm font-semibold text-zinc-900">
+                Click or drag PDF here to upload
               </p>
-            </div>
-
-            <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
-              <Button
-                type="button"
-                size="sm"
-                variant="glow"
-                className="rounded-xl gap-1.5 text-xs font-semibold shadow-md pointer-events-none"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                <span>Browse Local Files</span>
-              </Button>
-            </div>
-
-            <div className="pt-3 border-t border-border/60 flex items-center justify-center gap-4 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                PDF up to 25MB
-              </span>
-              <span>•</span>
-              <span>Text is strictly grounded</span>
+              <p className="text-xs text-zinc-500">
+                PDF textbook, lecture slides, syllabus, or notes (up to 25MB)
+              </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Uploading / Extracting / Processing State Card */}
+      {/* Uploading Progress */}
       {(uploadingState === "uploading" || uploadingState === "extracting" || uploadingState === "processing") && (
-        <Card className="p-8 space-y-6 border-primary/40 bg-gradient-to-br from-indigo-50/30 via-background to-transparent dark:from-indigo-950/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="p-3 rounded-2xl bg-primary/10 text-primary animate-spin">
-                <Loader2 className="h-6 w-6" />
-              </div>
+        <div className="p-4 rounded-xl border border-zinc-200 bg-white space-y-3 shadow-xs">
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center space-x-2.5">
+              <Loader2 className="h-4 w-4 text-zinc-800 animate-spin" />
               <div>
-                <h4 className="font-bold text-sm text-foreground">{currentFileName}</h4>
-                <p className="text-xs text-muted-foreground">{currentFileSize}</p>
+                <p className="font-semibold text-zinc-900">{currentFileName}</p>
+                <p className="text-zinc-500 text-[11px]">{currentFileSize}</p>
               </div>
             </div>
-
-            <Badge variant="purple" className="text-xs">
-              {uploadingState === "uploading" && "Uploading..."}
-              {uploadingState === "extracting" && "Extracting text..."}
-              {uploadingState === "processing" && "Processing material..."}
-            </Badge>
+            <span className="font-mono font-medium text-zinc-700">{uploadProgress}%</span>
           </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs text-muted-foreground font-medium">
-              <span>
-                {uploadingState === "uploading" && "Sending document to server..."}
-                {uploadingState === "extracting" && "Parsing pages, removing whitespace & counting words..."}
-                {uploadingState === "processing" && "Generating structured summary & detecting subtopics..."}
-              </span>
-              <span className="font-bold text-primary">{uploadProgress}%</span>
-            </div>
-            <Progress value={uploadProgress} className="h-2.5" />
-          </div>
-        </Card>
-      )}
-
-      {/* Success State Card */}
-      {uploadingState === "success" && uploadedDoc && (
-        <Card className="p-6 border-emerald-500/40 bg-emerald-50/20 dark:bg-emerald-950/20 space-y-5 animate-in fade-in duration-200">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start space-x-3.5">
-              <div className="p-2.5 rounded-2xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
-                <FileCheck className="h-6 w-6" />
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-base text-foreground">{uploadedDoc.title}</h4>
-                  <Badge variant="success" className="text-[10px]">
-                    Extracted Successfully
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span>{uploadedDoc.pageCount} Pages</span>
-                  <span>•</span>
-                  <span>{uploadedDoc.wordCount.toLocaleString()} Words</span>
-                  <span>•</span>
-                  <span>{uploadedDoc.topics.length} Subtopics Indexed</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5 shrink-0">
-              <Link href={`/generate?docId=${uploadedDoc.id}`}>
-                <Button size="sm" variant="glow" className="rounded-xl gap-1.5 text-xs font-semibold shadow-md">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  <span>Generate Questions</span>
-                </Button>
-              </Link>
-              <Button size="sm" variant="ghost" onClick={handleReset} className="rounded-xl text-xs">
-                Upload Another
-              </Button>
-            </div>
-          </div>
-
-          <p className="text-xs text-muted-foreground bg-background/80 p-3 rounded-xl border border-border/80 leading-relaxed">
-            {uploadedDoc.summary}
+          <Progress value={uploadProgress} className="h-1.5 bg-zinc-100" />
+          <p className="text-[11px] text-zinc-500">
+            {uploadingState === "uploading" && "Uploading document to server..."}
+            {uploadingState === "extracting" && "Parsing pages and extracting text..."}
+            {uploadingState === "processing" && "Indexing educational concepts and chunking..."}
           </p>
-        </Card>
+        </div>
       )}
 
-      {/* Error State Card */}
+      {/* Success State */}
+      {uploadingState === "success" && (
+        <div className="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center justify-between text-xs text-emerald-800">
+          <div className="flex items-center space-x-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+            <span className="font-medium">Uploaded & Indexed: {currentFileName}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
       {uploadingState === "error" && (
-        <Card className="p-6 border-rose-500/40 bg-rose-50/20 dark:bg-rose-950/20 space-y-4 animate-in fade-in duration-200">
-          <div className="flex items-start space-x-3">
-            <div className="p-2 rounded-xl bg-rose-500/20 text-rose-600 dark:text-rose-400 shrink-0">
-              <AlertCircle className="h-5 w-5" />
+        <div className="p-4 rounded-xl border border-rose-200 bg-rose-50/60 space-y-2">
+          <div className="flex items-start justify-between">
+            <div className="flex items-start space-x-2 text-xs text-rose-800">
+              <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">Upload Failed</p>
+                <p className="text-rose-700 mt-0.5">{errorMessage}</p>
+              </div>
             </div>
-            <div className="space-y-1 flex-1">
-              <h4 className="font-bold text-sm text-foreground">Upload Error</h4>
-              <p className="text-xs text-rose-600 dark:text-rose-400 leading-relaxed">
-                {errorMessage}
-              </p>
-            </div>
-            <button
-              onClick={handleReset}
-              className="text-muted-foreground hover:text-foreground p-1"
-            >
+            <button onClick={handleReset} className="text-rose-500 hover:text-rose-700">
               <X className="h-4 w-4" />
             </button>
           </div>
-
-          <div className="flex justify-end gap-2">
-            <Button size="sm" variant="outline" onClick={handleReset} className="text-xs rounded-xl">
-              Try Again
-            </Button>
-          </div>
-        </Card>
+          <Button size="sm" variant="outline" onClick={handleReset} className="h-7 text-xs border-rose-200 bg-white hover:bg-rose-50">
+            Try Again
+          </Button>
+        </div>
       )}
     </div>
   );
